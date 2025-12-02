@@ -1,0 +1,254 @@
+# ADDING WIKI LINK TO YOUR EXISTING SITE
+# Step-by-Step Guide for app_min.py
+
+## STEP 1: Add Route to app_min.py (2 minutes)
+
+Open your app_min.py file.
+
+Find the section with all your routes (around line 500-550).
+You'll see routes like:
+```python
+@app.route("/scanner", endpoint="scanner")
+def scanner():
+    return render_template("aimn_flowing_scanner_auto.html")
+
+@app.route("/orders")
+def orders():
+    ...
+```
+
+**ADD THIS RIGHT AFTER YOUR EXISTING ROUTES:**
+
+```python
+# ============================================================================
+# HAGOLEM WIKI
+# ============================================================================
+
+@app.route("/hagolem/wiki", endpoint="hagolem_wiki")
+def hagolem_wiki():
+    """HaGOLEM Ideas Wiki - Main Dashboard"""
+    return render_template("hagolem_wiki.html")
+```
+
+**That's it for the basic wiki!** (If you want multi-user, add more routes from auth_routes.py)
+
+---
+
+## STEP 2: Add Navigation Link to Your Homepage (3 minutes)
+
+### Find Your index.html Template
+
+In PythonAnywhere:
+1. Go to Files tab
+2. Navigate to: `/home/MeirNiv/mysite/templates/`
+3. Open `index.html`
+
+### Add the Link
+
+**OPTION A: If you have a navigation bar**
+Find where you have links like "Scanner", "Orders", etc.
+Add this line:
+```html
+<a href="/hagolem/wiki">📚 Wiki</a>
+```
+
+**OPTION B: If you have a dashboard with cards**
+Add this card:
+```html
+<div class="dashboard-card" onclick="window.location='/hagolem/wiki'" 
+     style="cursor: pointer; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; padding: 25px; border-radius: 12px; margin: 15px;">
+    <h3>🤖 HaGOLEM Ideas Wiki</h3>
+    <p>Organize and search all your ideas, strategies & documents</p>
+    <span style="background: rgba(255,255,255,0.2); padding: 8px 16px; 
+                 border-radius: 6px; display: inline-block;">
+        Access Wiki →
+    </span>
+</div>
+```
+
+**OPTION C: Simple button anywhere on page**
+```html
+<a href="/hagolem/wiki" style="background: #4F46E5; color: white; 
+   padding: 12px 24px; text-decoration: none; border-radius: 6px; 
+   display: inline-block; font-weight: bold; margin: 10px;">
+    📚 HaGOLEM Wiki
+</a>
+```
+
+---
+
+## STEP 3: Add Link to Scanner Page (Optional - 2 minutes)
+
+Open `templates/aimn_flowing_scanner_auto.html`
+
+**Add this at the top of the page** (inside the body, maybe in the header):
+```html
+<div style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <a href="/hagolem/wiki" style="background: #4F46E5; color: white; 
+       padding: 8px 16px; border-radius: 6px; text-decoration: none; 
+       font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+        📚 Wiki
+    </a>
+</div>
+```
+
+This creates a small "Wiki" button in the top-right corner.
+
+---
+
+## STEP 4: Add Link to Orders Page (Optional - 2 minutes)
+
+Open `templates/orders.html`
+
+**Find the page title/header** (probably has `<h1>Orders</h1>` or similar).
+
+**Replace it with:**
+```html
+<div style="display: flex; justify-content: space-between; 
+            align-items: center; margin-bottom: 20px;">
+    <h1>Orders</h1>
+    <a href="/hagolem/wiki" style="background: #4F46E5; color: white; 
+       padding: 10px 20px; border-radius: 6px; text-decoration: none; 
+       font-weight: 600;">
+        📚 Ideas Wiki
+    </a>
+</div>
+```
+
+---
+
+## STEP 5: Reload Your Web App (1 minute)
+
+1. Go to PythonAnywhere Web tab
+2. Click the big green **"Reload"** button
+3. Wait 10 seconds
+
+---
+
+## STEP 6: Test It! (1 minute)
+
+1. Visit your homepage: `https://meirniv.pythonanywhere.com/`
+2. You should see the new Wiki link/button
+3. Click it
+4. Should go to: `https://meirniv.pythonanywhere.com/hagolem/wiki`
+
+---
+
+## WHAT IF IT DOESN'T WORK?
+
+### Error: "Not Found" or "404"
+**Problem:** Route not added correctly
+**Solution:** 
+- Check app_min.py has the @app.route("/hagolem/wiki") route
+- Make sure you reloaded the web app
+- Check for typos in the route
+
+### Error: "TemplateNotFound: hagolem_wiki.html"
+**Problem:** Template file not uploaded
+**Solution:**
+- Make sure `hagolem_wiki.html` is in your `templates` folder
+- Check the filename matches exactly (case-sensitive)
+
+### Link doesn't appear on page
+**Problem:** HTML not added to template
+**Solution:**
+- Check you edited the right template file
+- Make sure you saved the file
+- Reload web app
+
+---
+
+## RECOMMENDED PLACEMENT
+
+Based on your app_min.py, I recommend:
+
+### 1. HOME PAGE (index.html)
+Add a **dashboard card** - makes it prominent and professional
+
+### 2. NAVIGATION BAR (if you have one)
+Add a **text link** - "📚 Wiki" - next to Scanner, Orders, etc.
+
+### 3. SCANNER PAGE
+Add a **floating button** in top-right corner for quick access while trading
+
+### 4. ORDERS PAGE  
+Add a **button in header** to document trade ideas
+
+---
+
+## QUICK COPY-PASTE SUMMARY
+
+**In app_min.py (around line 550):**
+```python
+@app.route("/hagolem/wiki")
+def hagolem_wiki():
+    return render_template("hagolem_wiki.html")
+```
+
+**In index.html (anywhere visible):**
+```html
+<a href="/hagolem/wiki" style="background: #4F46E5; color: white; 
+   padding: 12px 24px; text-decoration: none; border-radius: 6px; 
+   display: inline-block; font-weight: bold; margin: 10px;">
+    📚 HaGOLEM Wiki
+</a>
+```
+
+**Then reload web app!**
+
+---
+
+## EXAMPLE: Your Navigation Might Look Like
+
+```python
+# In app_min.py - Your existing routes
+@app.route("/", endpoint="index")
+def index():
+    return render_template("index.html")
+
+@app.route("/scanner", endpoint="scanner")
+def scanner():
+    return render_template("aimn_flowing_scanner_auto.html")
+
+@app.route("/orders")
+def orders():
+    # ... your orders code ...
+
+# ADD THIS NEW ROUTE:
+@app.route("/hagolem/wiki")
+def hagolem_wiki():
+    return render_template("hagolem_wiki.html")
+```
+
+---
+
+## THAT'S IT!
+
+Total time: ~10 minutes
+- 2 min: Add route
+- 3 min: Add link to homepage
+- 2 min: Optional links to other pages
+- 1 min: Reload
+- 1 min: Test
+
+Now your wiki is integrated into your trading system!
+
+---
+
+## NEXT LEVEL: Add to All Your Pages
+
+Once you verify it works, you can add the wiki link to:
+- ✅ Home page (index.html)
+- ✅ Scanner page
+- ✅ Orders page
+- Tuning page
+- Symbols page
+- Any other pages you have
+
+Just use the simple button code:
+```html
+<a href="/hagolem/wiki">📚 Wiki</a>
+```
+
+Put it wherever makes sense for that page!

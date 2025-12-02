@@ -1,0 +1,149 @@
+<!-- ============================================================================ -->
+<!-- HAGOLEM WIKI NAVIGATION BUTTON                                            -->
+<!-- Add this to your index.html or navigation menu                            -->
+<!-- ============================================================================ -->
+
+<!-- OPTION 1: Simple Text Link (Add to navigation bar) -->
+<a href="/hagolem/wiki" class="nav-link">
+    📚 Ideas Wiki
+</a>
+
+<!-- OPTION 2: Button Style (Add anywhere on page) -->
+<a href="/hagolem/wiki" class="btn btn-primary" style="background: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 10px;">
+    📚 HaGOLEM Ideas Wiki
+</a>
+
+<!-- OPTION 3: Card/Dashboard Style (Good for home page) -->
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 30px; margin: 20px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <h3 style="color: white; margin: 0 0 10px 0; font-size: 24px;">🤖 HaGOLEM Wiki</h3>
+    <p style="color: rgba(255,255,255,0.9); margin: 0 0 20px 0;">
+        Your complete ideas repository - organize, search, and collaborate on all HaGOLEM concepts
+    </p>
+    <a href="/hagolem/wiki" style="background: white; color: #667eea; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+        Go to Wiki →
+    </a>
+</div>
+
+<!-- OPTION 4: Sidebar Link (If you have a sidebar) -->
+<li>
+    <a href="/hagolem/wiki">
+        <span class="icon">📚</span>
+        <span class="text">Ideas Wiki</span>
+    </a>
+</li>
+
+<!-- OPTION 5: Top Navigation Bar (Inline with other links) -->
+<nav style="background: #1a1a1a; padding: 15px; display: flex; gap: 20px; align-items: center;">
+    <a href="/">Home</a>
+    <a href="/scanner">Scanner</a>
+    <a href="/orders">Orders</a>
+    <a href="/hagolem/wiki" style="color: #60A5FA;">📚 Wiki</a>  <!-- ADD THIS -->
+    <!-- ... your other links ... -->
+</nav>
+
+<!-- ============================================================================ -->
+<!-- WHERE TO ADD THIS IN YOUR TEMPLATES                                        -->
+<!-- ============================================================================ -->
+
+<!-- In index.html - Add to existing navigation -->
+<!-- Find your navigation section and add one of the options above -->
+
+<!-- Example: If you have this in index.html: -->
+<!--
+<div class="navigation">
+    <a href="/scanner">Scanner</a>
+    <a href="/orders">Orders</a>
+</div>
+-->
+
+<!-- Change to this: -->
+<!--
+<div class="navigation">
+    <a href="/scanner">Scanner</a>
+    <a href="/orders">Orders</a>
+    <a href="/hagolem/wiki">📚 Wiki</a>     <-- ADD THIS LINE
+</div>
+-->
+
+<!-- ============================================================================ -->
+<!-- RECOMMENDED: Add to your homepage as a featured card                       -->
+<!-- ============================================================================ -->
+
+<!-- If you have a dashboard/home page with cards, add this card: -->
+<div class="wiki-card" style="
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.2s;
+    cursor: pointer;
+">
+    <div onclick="window.location='/hagolem/wiki'" style="color: white;">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+                <h3 style="margin: 0 0 10px 0; font-size: 22px;">
+                    🤖 HaGOLEM Ideas Wiki
+                </h3>
+                <p style="margin: 0; opacity: 0.95; font-size: 14px;">
+                    Organize and search all your HaGOLEM ideas, strategies, and documents
+                </p>
+            </div>
+            <div style="font-size: 36px; opacity: 0.8;">
+                📚
+            </div>
+        </div>
+        <div style="margin-top: 20px;">
+            <span style="
+                background: rgba(255,255,255,0.2);
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-size: 13px;
+                font-weight: 600;
+            ">
+                Access Wiki →
+            </span>
+        </div>
+    </div>
+</div>
+
+<style>
+.wiki-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+</style>
+
+<!-- ============================================================================ -->
+<!-- QUICK COPY-PASTE FOR DIFFERENT PAGES                                       -->
+<!-- ============================================================================ -->
+
+<!-- FOR SCANNER PAGE (add small link in corner): -->
+<div style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <a href="/hagolem/wiki" style="
+        background: #4F46E5;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    ">
+        📚 Wiki
+    </a>
+</div>
+
+<!-- FOR ORDERS PAGE (add to page header): -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>Orders</h1>
+    <a href="/hagolem/wiki" style="
+        background: #4F46E5;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+    ">
+        📚 Ideas Wiki
+    </a>
+</div>
