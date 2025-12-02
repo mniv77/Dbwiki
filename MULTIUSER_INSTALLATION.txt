@@ -1,0 +1,359 @@
+# HaGOLEM WIKI - MULTI-USER SYSTEM INSTALLATION GUIDE
+
+## WHAT THIS ADDS TO YOUR SYSTEM
+
+✅ User registration and login
+✅ Track who adds ideas and comments
+✅ Admin dashboard to manage users
+✅ Secure password encryption
+✅ User roles (admin, user, viewer)
+✅ Activity logging
+✅ Protected routes (must login to access)
+
+## STEP-BY-STEP INSTALLATION
+
+### STEP 1: Install Required Package (5 minutes)
+
+1. Go to PythonAnywhere
+2. Open a Bash console
+3. Run this command:
+   ```bash
+   pip install bcrypt --user
+   ```
+4. Wait for installation to complete
+5. Close the bash console
+
+### STEP 2: Update Database Schema (5 minutes)
+
+1. Go to PythonAnywhere Databases tab
+2. Click "Open MySQL console"
+3. Copy ALL contents from `user_auth_schema.sql`
+4. Paste into MySQL console
+5. Press Enter to execute
+6. Verify tables were created:
+   ```sql
+   SHOW TABLES;
+   ```
+   You should now see:
+   - hagolem_users
+   - hagolem_sessions  
+   - hagolem_activity_log
+   - Plus your existing tables
+
+### STEP 3: Create Your First Admin User (IMPORTANT!)
+
+In the same MySQL console, run this command but REPLACE the values:
+
+```sql
+-- Create your admin account
+INSERT INTO hagolem_users 
+(username, email, password_hash, full_name, role, is_active, email_verified)
+VALUES 
+('meir', 'your-email@example.com', 'TEMP', 'Meir Nivgad', 'admin', TRUE, TRUE);
+```
+
+**IMPORTANT:** This creates a user with username "meir" but NO PASSWORD YET.
+You'll set the password after installation.
+
+### STEP 4: Update Flask App (10 minutes)
+
+1. Open your `app_min.py` (or `app.py`)
+
+2. **ADD at the very top** (after other imports):
+   ```python
+   import bcrypt
+   import secrets
+   from functools import wraps
+   ```
+
+3. **ADD this line** (after app = Flask(__name__)):
+   ```python
+   app.secret_key = 'CHANGE-THIS-TO-RANDOM-STRING'
+   ```
+   IMPORTANT: Change this to a random string like: 'xk8fjd93jfks83jdks92jdk3'
+
+4. **COPY ALL CODE** from `auth_routes.py` and paste it into your app file
+   (Paste it BEFORE your existing wiki routes)
+
+5. **UPDATE your database credentials** in the `get_db()` function
+
+6. **ADD** the admin route from `admin_route.py`
+
+### STEP 5: Upload HTML Templates (5 minutes)
+
+Upload these files to your `templates` folder:
+1. `hagolem_login.html` → templates/hagolem_login.html
+2. `hagolem_register.html` → templates/hagolem_register.html  
+3. `hagolem_admin.html` → templates/hagolem_admin.html
+
+### STEP 6: Update Existing Wiki HTML (10 minutes)
+
+Open your existing `hagolem_wiki.html` and:
+
+1. **ADD user bar at top** - Copy from `wiki_updates_for_auth.html`
+2. **UPDATE comment submission** - Follow instructions in that file
+3. Save the file
+
+### STEP 7: Reload Your Web App
+
+1. Go to PythonAnywhere Web tab
+2. Click the big green "Reload" button
+3. Wait 10 seconds
+
+### STEP 8: Set Your Password (IMPORTANT!)
+
+1. Open your browser and go to:
+   ```
+   https://meirniv.pythonanywhere.com/hagolem/register
+   ```
+
+2. Register with:
+   - Username: meir (or whatever you used in Step 3)
+   - Email: (same as Step 3)
+   - Password: (choose a strong password)
+   - Full Name: Meir Nivgad
+
+   This will UPDATE your existing admin account with a real password.
+
+   OR use this SQL command in MySQL console:
+   ```sql
+   -- Generate password hash in Python first:
+   import bcrypt
+   password = "your-chosen-password"
+   hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+   print(hashed.decode('utf-8'))
+   
+   -- Then update in MySQL:
+   UPDATE hagolem_users 
+   SET password_hash = 'paste-hash-here' 
+   WHERE username = 'meir';
+   ```
+
+### STEP 9: Test Everything
+
+1. **Test Login:**
+   - Go to: https://meirniv.pythonanywhere.com/hagolem/login
+   - Login with your username and password
+   - Should redirect to wiki
+
+2. **Test Wiki Access:**
+   - Should see your name at top
+   - Should see "Manage Users" button (you're admin)
+   - Try adding an idea
+
+3. **Test Admin Dashboard:**
+   - Click "Manage Users" button
+   - Should see yourself in the users list
+   - Try changing a role (change it back after testing)
+
+4. **Test Registration:**
+   - Logout
+   - Go to: https://meirniv.pythonanywhere.com/hagolem/register
+   - Register a test user
+   - Login with that user
+   - Should NOT see "Manage Users" button (not admin)
+
+5. **Test Logout:**
+   - Click logout button
+   - Should redirect to login page
+   - Try accessing /hagolem/wiki without logging in
+   - Should redirect to login page
+
+## STEP 10: Add Link from Your Main Website
+
+In your main website's header/dashboard, add a link:
+
+```html
+<a href="/hagolem/login" class="nav-link">
+    📚 Ideas Wiki
+</a>
+```
+
+Or if you want to check if they're logged in first:
+
+```html
+<a href="/hagolem/wiki" class="nav-link">
+    📚 Ideas Wiki
+</a>
+```
+
+It will automatically redirect to login if needed.
+
+## USER ROLES EXPLAINED
+
+**Admin:**
+- Can do everything
+- Access admin dashboard
+- Manage users (enable/disable, change roles)
+- View all activity
+- You (Meir) should be admin
+
+**User:** (default for new registrations)
+- Add ideas
+- Edit own ideas
+- Add comments
+- View all ideas
+- Most people should be this
+
+**Viewer:**
+- View ideas only
+- Add comments
+- Cannot add or edit ideas
+- For people who just want to read
+
+## MANAGING USERS
+
+As admin, you can:
+
+1. **View All Users**
+   - Go to Admin Dashboard
+   - See username, email, activity
+
+2. **Change User Role**
+   - Use dropdown in admin dashboard
+   - Change between viewer/user/admin
+
+3. **Enable/Disable Users**
+   - Click Disable to prevent login
+   - Click Enable to allow login again
+   - Useful if someone leaves team
+
+4. **View User Activity**
+   - See who added what
+   - Track comments
+   - Monitor system usage
+
+## SECURITY FEATURES
+
+✅ **Password Encryption** - Uses bcrypt (industry standard)
+✅ **Session Management** - Secure Flask sessions
+✅ **SQL Injection Protection** - Parameterized queries
+✅ **XSS Protection** - HTML escaping
+✅ **Login Required** - Can't access wiki without login
+✅ **Role-Based Access** - Different permissions per role
+
+## WHAT'S TRACKED
+
+The system now tracks:
+- Who added each idea
+- Who wrote each comment
+- When users login/logout
+- All user actions (activity log)
+- View counts per idea
+- Comment counts per user
+
+## TROUBLESHOOTING
+
+### Error: "No module named 'bcrypt'"
+**Fix:** Run `pip install bcrypt --user` in Bash console
+
+### Error: "Table doesn't exist"
+**Fix:** Run the SQL schema file (Step 2)
+
+### Error: "Please login first"
+**Fix:** You need to login at /hagolem/login
+
+### Can't login - "Invalid username or password"
+**Fix:** Make sure you created admin user (Step 3) and set password (Step 8)
+
+### Admin dashboard shows "Admin access required"
+**Fix:** Your user role needs to be 'admin'. Check in MySQL:
+```sql
+UPDATE hagolem_users SET role = 'admin' WHERE username = 'meir';
+```
+
+### Users can access wiki without logging in
+**Fix:** Make sure you added @login_required decorator to routes
+
+## AFTER INSTALLATION
+
+### Invite Team Members
+
+1. Give them the registration link:
+   ```
+   https://meirniv.pythonanywhere.com/hagolem/register
+   ```
+
+2. They register with:
+   - Username (their choice)
+   - Email
+   - Password
+   - Full name
+
+3. They automatically get "user" role
+
+4. If you want them to be admin:
+   - Go to admin dashboard
+   - Change their role to "admin"
+
+### Monitor Usage
+
+Check admin dashboard regularly to:
+- See who's active
+- View new registrations
+- Track idea contributions
+- Manage user access
+
+## BENEFITS OF MULTI-USER SYSTEM
+
+**For You (Meir):**
+- Know who contributed what
+- Track team engagement
+- Control access
+- Professional system
+
+**For Team:**
+- Each person has own account
+- Comments show real names
+- Can see who wrote what
+- Collaboration is tracked
+
+**For Fundraising:**
+- Show VCs organized team
+- Track contribution metrics
+- Professional presentation
+- Collaborative documentation
+
+## WHAT TO DO NEXT
+
+1. ✅ Complete installation
+2. ✅ Set your admin password
+3. ✅ Test everything
+4. ✅ Invite 1-2 test users
+5. ✅ Verify they can register/login
+6. ✅ Start using the wiki!
+
+## FILES INCLUDED
+
+1. user_auth_schema.sql - Database schema for users
+2. auth_routes.py - Login/registration backend code
+3. hagolem_login.html - Login page
+4. hagolem_register.html - Registration page
+5. hagolem_admin.html - Admin dashboard
+6. wiki_updates_for_auth.html - Updates for main wiki
+7. admin_route.py - Admin route
+8. THIS FILE - Installation guide
+
+## NEED HELP?
+
+If you get stuck, just ask:
+- "I'm on step X and getting error Y"
+- "How do I add someone as admin?"
+- "Can't login - what's wrong?"
+
+I'll help you through it!
+
+## ESTIMATED TIME
+
+Total installation time: 35-40 minutes
+- Step 1 (bcrypt): 5 min
+- Step 2 (database): 5 min  
+- Step 3 (admin user): 2 min
+- Step 4 (flask app): 10 min
+- Step 5 (templates): 5 min
+- Step 6 (update wiki): 10 min
+- Step 7 (reload): 1 min
+- Step 8 (password): 2 min
+- Step 9 (testing): 10 min
+
+Worth it for a professional multi-user system! 🎉

@@ -1,0 +1,174 @@
+<!-- HaGOLEM Wiki - Registration Page -->
+<!-- Save as: templates/hagolem_register.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaGOLEM Wiki - Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center py-8">
+    
+    <div class="max-w-md w-full p-6">
+        
+        <!-- Logo/Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2 text-blue-400">🤖 HaGOLEM Wiki</h1>
+            <p class="text-gray-400">Create your account</p>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="bg-gray-800 rounded-lg p-8 shadow-lg">
+            <h2 class="text-2xl font-bold mb-6">Register</h2>
+            
+            <form id="register-form" onsubmit="handleRegister(event)">
+                
+                <!-- Full Name -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Full Name *</label>
+                    <input type="text" id="full_name" required
+                           class="w-full bg-gray-700 text-white px-4 py-3 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+                           placeholder="John Doe">
+                </div>
+
+                <!-- Username -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Username *</label>
+                    <input type="text" id="username" required minlength="3"
+                           class="w-full bg-gray-700 text-white px-4 py-3 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+                           placeholder="johndoe">
+                    <p class="text-xs text-gray-500 mt-1">At least 3 characters, no spaces</p>
+                </div>
+
+                <!-- Email -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Email *</label>
+                    <input type="email" id="email" required
+                           class="w-full bg-gray-700 text-white px-4 py-3 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+                           placeholder="john@example.com">
+                </div>
+
+                <!-- Password -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Password *</label>
+                    <input type="password" id="password" required minlength="6"
+                           class="w-full bg-gray-700 text-white px-4 py-3 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+                           placeholder="At least 6 characters">
+                    <p class="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="mb-6">
+                    <label class="block text-sm font-bold mb-2">Confirm Password *</label>
+                    <input type="password" id="confirm_password" required minlength="6"
+                           class="w-full bg-gray-700 text-white px-4 py-3 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+                           placeholder="Re-enter password">
+                </div>
+
+                <!-- Error/Success Message -->
+                <div id="message" class="hidden mb-4 px-4 py-3 rounded">
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded transition duration-200">
+                    Create Account
+                </button>
+            </form>
+
+            <!-- Login Link -->
+            <div class="mt-6 text-center">
+                <p class="text-gray-400">
+                    Already have an account? 
+                    <a href="/hagolem/login" class="text-blue-400 hover:text-blue-300 font-semibold">
+                        Login here
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Back to Home -->
+        <div class="text-center mt-6">
+            <a href="/" class="text-gray-500 hover:text-gray-300">
+                ← Back to Home
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function handleRegister(e) {
+            e.preventDefault();
+            
+            const full_name = document.getElementById('full_name').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirm_password = document.getElementById('confirm_password').value;
+            const messageDiv = document.getElementById('message');
+            
+            // Hide previous messages
+            messageDiv.classList.add('hidden');
+            
+            // Validate passwords match
+            if (password !== confirm_password) {
+                messageDiv.textContent = 'Passwords do not match!';
+                messageDiv.className = 'mb-4 bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded';
+                messageDiv.classList.remove('hidden');
+                return;
+            }
+            
+            // Validate username (no spaces)
+            if (username.includes(' ')) {
+                messageDiv.textContent = 'Username cannot contain spaces';
+                messageDiv.className = 'mb-4 bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded';
+                messageDiv.classList.remove('hidden');
+                return;
+            }
+            
+            // Show loading
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating account...';
+            
+            // Send registration request
+            fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ full_name, username, email, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    messageDiv.textContent = data.message || 'Registration successful! Redirecting to login...';
+                    messageDiv.className = 'mb-4 bg-green-900 border border-green-700 text-green-200 px-4 py-3 rounded';
+                    messageDiv.classList.remove('hidden');
+                    
+                    // Redirect to login after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = '/hagolem/login';
+                    }, 2000);
+                } else {
+                    // Show error
+                    messageDiv.textContent = data.error || 'Registration failed';
+                    messageDiv.className = 'mb-4 bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded';
+                    messageDiv.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Account';
+                }
+            })
+            .catch(error => {
+                messageDiv.textContent = 'Connection error. Please try again.';
+                messageDiv.className = 'mb-4 bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded';
+                messageDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            });
+        }
+    </script>
+</body>
+</html>

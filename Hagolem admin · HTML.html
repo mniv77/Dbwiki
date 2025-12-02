@@ -1,0 +1,226 @@
+<!-- HaGOLEM Wiki - Admin Dashboard -->
+<!-- Save as: templates/hagolem_admin.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaGOLEM Wiki - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    
+    <!-- Top Bar -->
+    <div class="bg-gray-800 border-b border-gray-700 px-6 py-3">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-blue-400">👥 Admin Dashboard</h1>
+            </div>
+            <div class="flex gap-3">
+                <a href="/hagolem/wiki" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-semibold">
+                    ← Back to Wiki
+                </a>
+                <button onclick="handleLogout()" 
+                        class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-semibold">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto p-6 max-w-6xl">
+        
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-gray-800 rounded-lg p-4">
+                <div class="text-3xl font-bold text-blue-400" id="stat-total-users">0</div>
+                <div class="text-sm text-gray-400">Total Users</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <div class="text-3xl font-bold text-green-400" id="stat-active-users">0</div>
+                <div class="text-sm text-gray-400">Active Users</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <div class="text-3xl font-bold text-purple-400" id="stat-admins">0</div>
+                <div class="text-sm text-gray-400">Admins</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <div class="text-3xl font-bold text-yellow-400" id="stat-new-week">0</div>
+                <div class="text-sm text-gray-400">New This Week</div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">All Users</h2>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="border-b border-gray-700">
+                        <tr>
+                            <th class="pb-3 pr-4">Username</th>
+                            <th class="pb-3 pr-4">Full Name</th>
+                            <th class="pb-3 pr-4">Email</th>
+                            <th class="pb-3 pr-4">Role</th>
+                            <th class="pb-3 pr-4">Ideas</th>
+                            <th class="pb-3 pr-4">Comments</th>
+                            <th class="pb-3 pr-4">Last Login</th>
+                            <th class="pb-3 pr-4">Status</th>
+                            <th class="pb-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <tr>
+                            <td colspan="9" class="text-center py-8 text-gray-500">
+                                Loading users...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load users on page load
+        window.onload = function() {
+            loadUsers();
+        };
+
+        function loadUsers() {
+            fetch('/api/users')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        displayUsers(data.users);
+                        updateStats(data.users);
+                    } else if (data.error === 'Admin access required') {
+                        alert('Admin access required');
+                        window.location.href = '/hagolem/wiki';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading users:', error);
+                    alert('Failed to load users');
+                });
+        }
+
+        function updateStats(users) {
+            const totalUsers = users.length;
+            const activeUsers = users.filter(u => u.is_active).length;
+            const admins = users.filter(u => u.role === 'admin').length;
+            
+            // Calculate new users this week
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const newThisWeek = users.filter(u => new Date(u.date_registered) > oneWeekAgo).length;
+            
+            document.getElementById('stat-total-users').textContent = totalUsers;
+            document.getElementById('stat-active-users').textContent = activeUsers;
+            document.getElementById('stat-admins').textContent = admins;
+            document.getElementById('stat-new-week').textContent = newThisWeek;
+        }
+
+        function displayUsers(users) {
+            const tbody = document.getElementById('users-table-body');
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-gray-500">No users found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = users.map(user => `
+                <tr class="border-b border-gray-700 hover:bg-gray-750">
+                    <td class="py-3 pr-4">
+                        <span class="font-semibold">${escapeHtml(user.username)}</span>
+                    </td>
+                    <td class="py-3 pr-4">${escapeHtml(user.full_name || '-')}</td>
+                    <td class="py-3 pr-4 text-sm text-gray-400">${escapeHtml(user.email)}</td>
+                    <td class="py-3 pr-4">
+                        <select onchange="changeRole(${user.id}, this.value)" 
+                                class="bg-gray-700 px-2 py-1 rounded text-sm border border-gray-600">
+                            <option value="viewer" ${user.role === 'viewer' ? 'selected' : ''}>Viewer</option>
+                            <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                    </td>
+                    <td class="py-3 pr-4 text-center">${user.ideas_count || 0}</td>
+                    <td class="py-3 pr-4 text-center">${user.comments_count || 0}</td>
+                    <td class="py-3 pr-4 text-sm text-gray-400">
+                        ${user.last_login ? formatDate(user.last_login) : 'Never'}
+                    </td>
+                    <td class="py-3 pr-4">
+                        ${user.is_active 
+                            ? '<span class="bg-green-900 text-green-200 px-2 py-1 rounded text-xs">Active</span>'
+                            : '<span class="bg-red-900 text-red-200 px-2 py-1 rounded text-xs">Disabled</span>'
+                        }
+                    </td>
+                    <td class="py-3">
+                        <button onclick="toggleUserStatus(${user.id})" 
+                                class="text-sm ${user.is_active ? 'text-red-400 hover:text-red-300' : 'text-green-400 hover:text-green-300'}">
+                            ${user.is_active ? '🚫 Disable' : '✅ Enable'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function changeRole(userId, newRole) {
+            if (!confirm(`Change user role to ${newRole}?`)) {
+                loadUsers(); // Reload to reset select
+                return;
+            }
+            
+            fetch(`/api/users/${userId}/change-role`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role: newRole })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Role updated successfully');
+                    loadUsers();
+                } else {
+                    alert('Failed to update role: ' + data.error);
+                    loadUsers();
+                }
+            });
+        }
+
+        function toggleUserStatus(userId) {
+            fetch(`/api/users/${userId}/toggle-active`, {
+                method: 'PUT'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    loadUsers();
+                } else {
+                    alert('Failed to update status: ' + data.error);
+                }
+            });
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                fetch('/api/auth/logout', { method: 'POST' })
+                    .then(() => window.location.href = '/hagolem/login');
+            }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>.

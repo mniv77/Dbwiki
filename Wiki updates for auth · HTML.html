@@ -1,0 +1,131 @@
+<!-- ADD THIS TO THE TOP OF YOUR hagolem_wiki.html -->
+<!-- Insert after the <body> tag and before the main container -->
+
+<body class="bg-gray-900 text-white">
+    
+    <!-- User Info Bar - ADD THIS -->
+    <div class="bg-gray-800 border-b border-gray-700 px-6 py-3">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <span class="text-gray-400">Logged in as:</span>
+                <span class="font-semibold text-blue-400" id="user-display">Loading...</span>
+                <span class="text-xs text-gray-500" id="user-role"></span>
+            </div>
+            <div class="flex gap-3">
+                <a href="/hagolem/admin" id="admin-link" class="hidden bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded text-sm font-semibold">
+                    👥 Manage Users
+                </a>
+                <button onclick="handleLogout()" 
+                        class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-semibold">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- THEN YOUR EXISTING CONTAINER -->
+    <div class="container mx-auto p-4 max-w-6xl">
+        <!-- ... rest of your existing content ... -->
+    </div>
+
+    <!-- ADD THIS SCRIPT AT THE END (before </body>) -->
+    <script>
+        // Load current user info on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/auth/me')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.user) {
+                        document.getElementById('user-display').textContent = data.user.full_name || data.user.username;
+                        document.getElementById('user-role').textContent = `(${data.user.role})`;
+                        
+                        // Show admin link if user is admin
+                        if (data.user.role === 'admin') {
+                            document.getElementById('admin-link').classList.remove('hidden');
+                        }
+                    } else {
+                        // Not logged in - redirect to login
+                        window.location.href = '/hagolem/login';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading user:', error);
+                    window.location.href = '/hagolem/login';
+                });
+        });
+
+        // Logout function
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                fetch('/api/auth/logout', { method: 'POST' })
+                    .then(r => r.json())
+                    .then(data => {
+                        window.location.href = '/hagolem/login';
+                    })
+                    .catch(error => {
+                        console.error('Logout error:', error);
+                        window.location.href = '/hagolem/login';
+                    });
+            }
+        }
+
+        // UPDATE THE submitComment FUNCTION to not ask for name anymore:
+        function submitComment(ideaId) {
+            const comment = document.getElementById(`new-comment-${ideaId}`).value.trim();
+            const type = document.getElementById(`comment-type-${ideaId}`).value;
+            
+            if (!comment) {
+                alert('Please enter a comment');
+                return;
+            }
+            
+            fetch('/api/wiki/comments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    idea_id: ideaId,
+                    comment_text: comment,
+                    comment_type: type
+                    // No need to send commenter_name - it's from session
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelector('.fixed').remove();
+                    showFullIdea(ideaId);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+<!-- ALSO UPDATE THE COMMENT FORM IN showFullIdea() FUNCTION -->
+<!-- Find this section and REMOVE the name input field: -->
+
+<!-- OLD (remove this): -->
+<!--
+<input type="text" id="comment-name-${idea.id}" placeholder="Your name"
+       class="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 w-1/3">
+-->
+
+<!-- NEW (replace with this): -->
+<div class="bg-gray-900 rounded-lg p-4 mb-4">
+    <textarea id="new-comment-${idea.id}" rows="3" 
+              placeholder="Add your comment or suggestion..."
+              class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 mb-2"></textarea>
+    <div class="flex gap-2">
+        <select id="comment-type-${idea.id}" 
+                class="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
+            <option>Comment</option>
+            <option>Suggestion</option>
+            <option>Question</option>
+            <option>Approval</option>
+        </select>
+        <button onclick="submitComment(${idea.id})" 
+                class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded font-semibold">
+            Post Comment
+        </button>
+    </div>
+</div>
