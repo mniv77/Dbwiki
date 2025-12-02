@@ -1,0 +1,181 @@
+# HaGOLEM Wiki-Style Ideas Database Schema
+# Updated with summary, comments, and change tracking
+
+# ============================================================================
+# Main Ideas Table (Enhanced)
+# ============================================================================
+
+CREATE TABLE hagolem_ideas (
+    -- Primary key
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    -- The idea hierarchy: Title -> Summary -> Full Content
+    idea_title VARCHAR(500) NOT NULL,
+    idea_summary TEXT,                    -- NEW: Short summary (2-3 sentences)
+    idea_content TEXT NOT NULL,           -- Full detailed content
+    
+    -- Categorization
+    idea_type VARCHAR(100),  -- 'Patent', 'Business Strategy', 'Technical', 'VC Pitch', 'Marketing', etc.
+    category VARCHAR(100),   -- 'Platform', 'RoboChef', 'Military', 'Fundraising', etc.
+    priority VARCHAR(50),    -- 'High', 'Medium', 'Low', 'Critical'
+    status VARCHAR(50),      -- 'New', 'In Progress', 'Implemented', 'On Hold', 'Archived'
+    
+    -- File tracking (for your scattered files)
+    source_file VARCHAR(500),     -- Original filename (e.g., "HaGOLEM_Pitch_v3.pptx")
+    file_location VARCHAR(1000),  -- Full path or URL
+    file_type VARCHAR(50),        -- 'Document', 'Presentation', 'Spreadsheet', 'Email', etc.
+    
+    -- Metadata
+    date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
+    date_modified DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(100) DEFAULT 'Meir',
+    modified_by VARCHAR(100),
+    
+    -- Wiki-style tracking
+    version INT DEFAULT 1,                -- Version number
+    view_count INT DEFAULT 0,             -- How many times viewed
+    
+    -- Related items
+    related_to VARCHAR(500),      -- IDs of related ideas (comma-separated)
+    tags TEXT,                    -- Keywords for searching (comma-separated)
+    
+    -- Implementation tracking
+    action_items TEXT,            -- Next steps or TODO items
+    deadline DATE,                -- If there's a deadline
+    assigned_to VARCHAR(100),     -- Who's responsible
+    
+    -- Additional notes
+    notes TEXT,                   -- Any additional notes
+    attachments TEXT,             -- Links to files, images, etc. (JSON or comma-separated)
+    
+    -- Indexes for fast searching
+    INDEX idx_type (idea_type),
+    INDEX idx_category (category),
+    INDEX idx_status (status),
+    INDEX idx_date (date_created),
+    INDEX idx_views (view_count),
+    FULLTEXT INDEX idx_search (idea_title, idea_summary, idea_content, tags)
+);
+
+# ============================================================================
+# Comments Table (Wiki-style discussions)
+# ============================================================================
+
+CREATE TABLE hagolem_comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    idea_id INT NOT NULL,                 -- Which idea this comment is for
+    
+    -- Comment content
+    comment_text TEXT NOT NULL,
+    comment_type VARCHAR(50),             -- 'Comment', 'Suggestion', 'Question', 'Approval'
+    
+    -- User info
+    commenter_name VARCHAR(100) DEFAULT 'Anonymous',
+    commenter_email VARCHAR(200),
+    
+    -- Timestamps
+    date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
+    date_modified DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Status
+    is_resolved BOOLEAN DEFAULT FALSE,
+    resolved_by VARCHAR(100),
+    resolved_date DATETIME,
+    
+    -- Link to original idea
+    FOREIGN KEY (idea_id) REFERENCES hagolem_ideas(id) ON DELETE CASCADE,
+    INDEX idx_idea (idea_id),
+    INDEX idx_date (date_created)
+);
+
+# ============================================================================
+# Change History Table (Track all modifications - wiki-style)
+# ============================================================================
+
+CREATE TABLE hagolem_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    idea_id INT NOT NULL,
+    
+    -- What changed
+    field_changed VARCHAR(100),           -- 'title', 'content', 'summary', etc.
+    old_value TEXT,
+    new_value TEXT,
+    
+    -- Who and when
+    changed_by VARCHAR(100),
+    change_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    change_reason VARCHAR(500),           -- Why was this changed?
+    
+    -- Link to original idea
+    FOREIGN KEY (idea_id) REFERENCES hagolem_ideas(id) ON DELETE CASCADE,
+    INDEX idx_idea (idea_id),
+    INDEX idx_date (change_date)
+);
+
+# ============================================================================
+# Useful Views for Easy Reporting
+# ============================================================================
+
+-- View 1: Ideas with comment count
+CREATE VIEW ideas_with_stats AS
+SELECT 
+    i.*,
+    COUNT(DISTINCT c.id) as comment_count,
+    MAX(c.date_created) as last_comment_date
+FROM hagolem_ideas i
+LEFT JOIN hagolem_comments c ON i.id = c.idea_id
+GROUP BY i.id;
+
+-- View 2: Recent activity (last 30 days)
+CREATE VIEW recent_activity AS
+SELECT 
+    'idea' as activity_type,
+    id as item_id,
+    idea_title as title,
+    created_by as user,
+    date_created as activity_date
+FROM hagolem_ideas
+WHERE date_created >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+UNION ALL
+SELECT 
+    'comment' as activity_type,
+    idea_id as item_id,
+    CONCAT('Comment on: ', (SELECT idea_title FROM hagolem_ideas WHERE id = idea_id)) as title,
+    commenter_name as user,
+    date_created as activity_date
+FROM hagolem_comments
+WHERE date_created >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+ORDER BY activity_date DESC;
+
+# ============================================================================
+# Example Queries
+# ============================================================================
+
+-- 1. Get all ideas with their summaries (for list view)
+-- SELECT id, idea_title, idea_summary, idea_type, category, view_count 
+-- FROM hagolem_ideas 
+-- ORDER BY date_created DESC;
+
+-- 2. Get single idea with all details (for full view)
+-- SELECT * FROM hagolem_ideas WHERE id = ?;
+
+-- 3. Get all comments for an idea
+-- SELECT * FROM hagolem_comments WHERE idea_id = ? ORDER BY date_created DESC;
+
+-- 4. Search ideas by keyword (in title, summary, or content)
+-- SELECT id, idea_title, idea_summary 
+-- FROM hagolem_ideas 
+-- WHERE MATCH(idea_title, idea_summary, idea_content, tags) 
+-- AGAINST ('robot chef' IN NATURAL LANGUAGE MODE);
+
+-- 5. Get most viewed ideas
+-- SELECT id, idea_title, idea_summary, view_count 
+-- FROM hagolem_ideas 
+-- ORDER BY view_count DESC 
+-- LIMIT 10;
+
+-- 6. Get ideas by category with comment counts
+-- SELECT * FROM ideas_with_stats WHERE category = 'Platform' ORDER BY comment_count DESC;
+
+-- 7. Get recent activity feed
+-- SELECT * FROM recent_activity LIMIT 20;

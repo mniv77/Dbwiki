@@ -1,0 +1,142 @@
+# HaGOLEM Wiki - Installation Guide
+# Step-by-Step Instructions for Meir
+
+## STEP 1: Set Up the Database
+
+1. Log into your PythonAnywhere account
+2. Go to the "Databases" tab
+3. Find your MySQL database (or create one if needed)
+4. Click "Open MySQL console"
+
+5. Copy and paste the entire contents of `hagolem_wiki_schema.sql` into the console
+6. Press Enter to create all tables
+7. Verify tables were created:
+   ```sql
+   SHOW TABLES;
+   ```
+   You should see:
+   - hagolem_ideas
+   - hagolem_comments
+   - hagolem_history
+
+## STEP 2: Update Database Credentials
+
+Open `hagolem_wiki_routes.py` and find this section (around line 11):
+
+```python
+def get_db():
+    return mysql.connector.connect(
+        host='your-mysql-host.mysql.pythonanywhere-services.com',
+        user='your-username',
+        password='your-password',
+        database='your-database-name'
+    )
+```
+
+Replace with YOUR actual credentials:
+- host: Found in PythonAnywhere Databases tab (looks like: meirniv.mysql.pythonanywhere-services.com)
+- user: Your MySQL username (usually same as your PythonAnywhere username)
+- password: Your MySQL password
+- database: Your database name (usually username$default or similar)
+
+## STEP 3: Add Routes to Your Flask App
+
+Open your `app_min.py` (or `app.py`) file
+
+At the top, make sure you have these imports:
+```python
+from flask import Flask, render_template, request, jsonify
+import mysql.connector
+from datetime import datetime
+```
+
+Then, copy ALL the code from `hagolem_wiki_routes.py` and paste it into your app file
+(You can paste it at the end, before the final app.run() line)
+
+## STEP 4: Upload the HTML Template
+
+1. In PythonAnywhere, go to the "Files" tab
+2. Navigate to your project folder
+3. Find or create a folder called `templates`
+4. Upload `hagolem_wiki.html` into the templates folder
+5. Make sure it's named exactly: `hagolem_wiki.html`
+
+## STEP 5: Test the Installation
+
+1. In PythonAnywhere, go to "Web" tab
+2. Click "Reload" button to restart your app
+3. Open your browser and go to:
+   ```
+   https://meirniv.pythonanywhere.com/hagolem/wiki
+   ```
+
+You should see the HaGOLEM Wiki interface!
+
+## STEP 6: Add Your First Idea
+
+1. Click the "➕ Add New Idea" button
+2. Fill in:
+   - Title: "Test Idea"
+   - Summary: "This is a test to make sure everything works"
+   - Full Content: "Testing the wiki system. If you can see this, it works!"
+   - Type: Business Strategy
+   - Category: Platform
+3. Click "💾 Save Idea"
+
+If it saves successfully, everything is working!
+
+## STEP 7: Import Your Existing Ideas
+
+Now you can start adding your ideas from all those files you have!
+
+Two ways to do this:
+
+### Option A: Manual Entry (Recommended to start)
+1. Open one of your presentation/document files
+2. Copy the content
+3. Click "Add New Idea"
+4. Paste the content
+5. Add title, summary, and categorize it
+
+### Option B: Bulk Import (For many ideas at once)
+I'll create a separate import script for you that can read multiple files at once.
+
+## TROUBLESHOOTING
+
+### Error: "No module named 'mysql.connector'"
+Run this in PythonAnywhere Bash console:
+```bash
+pip install mysql-connector-python --user
+```
+
+### Error: "Table doesn't exist"
+Go back to Step 1 and make sure you ran the SQL schema file
+
+### Error: "Can't connect to database"
+Check your database credentials in Step 2
+
+### Can't see the page
+1. Make sure you reloaded your web app (Web tab → Reload button)
+2. Check the error log in the Web tab
+3. Make sure the HTML file is in the templates folder
+
+## NEXT STEPS
+
+Once everything is working:
+
+1. Start adding your ideas - one file at a time
+2. Add summaries to help you remember what each idea is about
+3. Invite others to comment and suggest improvements
+4. Use the search to find ideas quickly
+5. Tag your ideas so they're easy to find later
+
+## TIPS FOR ORGANIZING YOUR IDEAS
+
+- **Be consistent with categories**: Choose 5-7 main categories and stick to them
+- **Write good summaries**: 2-3 sentences that capture the essence
+- **Tag liberally**: Add lots of tags so you can search easily
+- **Note the source file**: Always include where the idea came from
+
+## NEED HELP?
+
+If you get stuck on any step, just ask me and I'll help you through it!

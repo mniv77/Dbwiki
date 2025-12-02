@@ -1,0 +1,545 @@
+<!-- HaGOLEM Wiki - Save as: templates/hagolem_wiki.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaGOLEM Wiki - Ideas Repository</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .idea-card { transition: all 0.3s ease; }
+        .idea-card:hover { transform: translateY(-2px); }
+        .collapsed { max-height: 0; overflow: hidden; }
+        .expanded { max-height: 5000px; transition: max-height 0.5s ease; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto p-4 max-w-6xl">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-900 to-purple-900 rounded-lg p-6 mb-6 shadow-lg">
+            <h1 class="text-4xl font-bold mb-2">📚 HaGOLEM Wiki</h1>
+            <p class="text-gray-300">Your Complete Ideas Repository - Click titles to expand</p>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-gray-800 rounded-lg p-4 text-center">
+                <div class="text-3xl font-bold text-blue-400" id="stat-total">0</div>
+                <div class="text-sm text-gray-400">Total Ideas</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4 text-center">
+                <div class="text-3xl font-bold text-green-400" id="stat-comments">0</div>
+                <div class="text-sm text-gray-400">Comments</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4 text-center">
+                <div class="text-3xl font-bold text-yellow-400" id="stat-recent">0</div>
+                <div class="text-sm text-gray-400">This Week</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4 text-center">
+                <div class="text-3xl font-bold text-purple-400" id="stat-categories">0</div>
+                <div class="text-sm text-gray-400">Categories</div>
+            </div>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="bg-gray-800 rounded-lg p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <input type="text" id="search-box" placeholder="🔍 Search ideas..." 
+                       class="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 col-span-2">
+                
+                <select id="filter-category" class="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
+                    <option value="">All Categories</option>
+                </select>
+
+                <select id="filter-type" class="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
+                    <option value="">All Types</option>
+                    <option value="Business Strategy">Business Strategy</option>
+                    <option value="Technical">Technical</option>
+                    <option value="VC Pitch">VC Pitch</option>
+                    <option value="Patent">Patent</option>
+                    <option value="Marketing">Marketing</option>
+                </select>
+            </div>
+            <div class="mt-3 flex gap-2">
+                <button onclick="searchIdeas()" 
+                        class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded font-semibold">
+                    Search
+                </button>
+                <button onclick="clearSearch()" 
+                        class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded font-semibold">
+                    Clear
+                </button>
+                <button onclick="showAddForm()" 
+                        class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-semibold ml-auto">
+                    ➕ Add New Idea
+                </button>
+            </div>
+        </div>
+
+        <!-- Add Idea Form (Hidden by default) -->
+        <div id="add-form" class="hidden bg-gray-800 rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4">Add New Idea</h2>
+            <form id="new-idea-form" onsubmit="submitIdea(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Title *</label>
+                    <input type="text" id="form-title" required
+                           class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Summary (2-3 sentences) *</label>
+                    <textarea id="form-summary" rows="3" required
+                              placeholder="Short summary that appears in the list..."
+                              class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Full Content *</label>
+                    <textarea id="form-content" rows="8" required
+                              placeholder="Complete detailed content..."
+                              class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Type</label>
+                        <select id="form-type" class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
+                            <option>Business Strategy</option>
+                            <option>Technical</option>
+                            <option>VC Pitch</option>
+                            <option>Patent</option>
+                            <option>Marketing</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Category</label>
+                        <input type="text" id="form-category"
+                               placeholder="Platform, RoboChef, etc."
+                               class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Priority</label>
+                        <select id="form-priority" class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
+                            <option>Medium</option>
+                            <option>High</option>
+                            <option>Critical</option>
+                            <option>Low</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Tags (comma-separated)</label>
+                    <input type="text" id="form-tags"
+                           placeholder="robot, AI, platform, fundraising"
+                           class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Source File (if from existing file)</label>
+                    <input type="text" id="form-source"
+                           placeholder="e.g., HaGOLEM_Pitch_v3.pptx"
+                           class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-semibold">
+                        💾 Save Idea
+                    </button>
+                    <button type="button" onclick="hideAddForm()" 
+                            class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded font-semibold">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Ideas List -->
+        <div id="ideas-container">
+            <!-- Ideas will be loaded here -->
+        </div>
+
+    </div>
+
+    <script>
+        // ====================================================================
+        // INITIALIZE
+        // ====================================================================
+        
+        let allIdeas = [];
+        let categories = new Set();
+
+        // Load on page load
+        window.onload = function() {
+            loadStats();
+            loadIdeas();
+        };
+
+        // ====================================================================
+        // LOAD DATA
+        // ====================================================================
+
+        function loadStats() {
+            fetch('/api/wiki/stats')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('stat-total').textContent = data.stats.total_ideas || 0;
+                        document.getElementById('stat-comments').textContent = data.stats.total_comments || 0;
+                        document.getElementById('stat-recent').textContent = data.stats.recent_ideas || 0;
+                        document.getElementById('stat-categories').textContent = data.stats.by_category?.length || 0;
+                        
+                        // Populate category dropdown
+                        const categorySelect = document.getElementById('filter-category');
+                        data.stats.by_category?.forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat.category;
+                            option.textContent = `${cat.category} (${cat.count})`;
+                            categorySelect.appendChild(option);
+                        });
+                    }
+                });
+        }
+
+        function loadIdeas(filters = {}) {
+            const params = new URLSearchParams(filters);
+            fetch(`/api/wiki/ideas/list?${params}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        allIdeas = data.ideas;
+                        displayIdeasList(data.ideas);
+                    }
+                });
+        }
+
+        // ====================================================================
+        // DISPLAY IDEAS - Wiki Style (Title → Summary → Full)
+        // ====================================================================
+
+        function displayIdeasList(ideas) {
+            const container = document.getElementById('ideas-container');
+            
+            if (ideas.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-gray-800 rounded-lg p-8 text-center">
+                        <p class="text-gray-400 text-lg">No ideas found. Add your first idea to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = ideas.map(idea => `
+                <div class="idea-card bg-gray-800 rounded-lg mb-4 overflow-hidden border-l-4 ${getPriorityColor(idea.priority)}">
+                    
+                    <!-- LEVEL 1: TITLE (Always visible) -->
+                    <div class="p-4 cursor-pointer hover:bg-gray-750" onclick="toggleSummary(${idea.id})">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-blue-400 mb-1">
+                                    <span id="arrow-${idea.id}">▶</span> ${escapeHtml(idea.idea_title)}
+                                </h3>
+                                <div class="flex gap-2 text-xs">
+                                    <span class="bg-blue-900 px-2 py-1 rounded">${escapeHtml(idea.idea_type)}</span>
+                                    <span class="bg-purple-900 px-2 py-1 rounded">${escapeHtml(idea.category)}</span>
+                                    <span class="bg-gray-700 px-2 py-1 rounded">👁️ ${idea.view_count}</span>
+                                    <span class="bg-green-900 px-2 py-1 rounded">💬 ${idea.comment_count}</span>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500 ml-4">
+                                ${formatDate(idea.date_modified)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LEVEL 2: SUMMARY (Click title to show) -->
+                    <div id="summary-${idea.id}" class="collapsed px-4">
+                        <div class="border-t border-gray-700 pt-4 pb-2">
+                            <p class="text-gray-300 mb-3 italic">
+                                ${escapeHtml(idea.idea_summary || 'No summary available. Click "Read More" to see full content.')}
+                            </p>
+                            <button onclick="showFullIdea(${idea.id}); event.stopPropagation();" 
+                                    class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-semibold">
+                                📖 Read Full Idea
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ====================================================================
+        // TOGGLE SUMMARY (Title → Summary)
+        // ====================================================================
+
+        function toggleSummary(ideaId) {
+            const summaryDiv = document.getElementById(`summary-${ideaId}`);
+            const arrow = document.getElementById(`arrow-${ideaId}`);
+            
+            if (summaryDiv.classList.contains('collapsed')) {
+                summaryDiv.classList.remove('collapsed');
+                summaryDiv.classList.add('expanded');
+                arrow.textContent = '▼';
+            } else {
+                summaryDiv.classList.add('collapsed');
+                summaryDiv.classList.remove('expanded');
+                arrow.textContent = '▶';
+            }
+        }
+
+        // ====================================================================
+        // SHOW FULL IDEA (Summary → Full Content + Comments)
+        // ====================================================================
+
+        function showFullIdea(ideaId) {
+            fetch(`/api/wiki/ideas/${ideaId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        displayFullIdea(data.idea, data.comments);
+                    }
+                });
+        }
+
+        function displayFullIdea(idea, comments) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+            
+            modal.innerHTML = `
+                <div class="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                    <div class="sticky top-0 bg-gray-900 p-4 border-b border-gray-700 flex justify-between items-center">
+                        <h2 class="text-2xl font-bold">${escapeHtml(idea.idea_title)}</h2>
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="text-gray-400 hover:text-white text-2xl">×</button>
+                    </div>
+                    
+                    <div class="p-6">
+                        <!-- Metadata -->
+                        <div class="flex gap-2 mb-4 text-sm flex-wrap">
+                            <span class="bg-blue-900 px-3 py-1 rounded">${escapeHtml(idea.idea_type)}</span>
+                            <span class="bg-purple-900 px-3 py-1 rounded">${escapeHtml(idea.category)}</span>
+                            <span class="bg-gray-700 px-3 py-1 rounded">${escapeHtml(idea.priority)}</span>
+                            <span class="bg-green-900 px-3 py-1 rounded">${escapeHtml(idea.status)}</span>
+                            <span class="bg-gray-700 px-3 py-1 rounded">👁️ ${idea.view_count} views</span>
+                            <span class="bg-gray-700 px-3 py-1 rounded">v${idea.version}</span>
+                        </div>
+
+                        <!-- Full Content -->
+                        <div class="bg-gray-900 rounded-lg p-4 mb-6">
+                            <h3 class="text-lg font-bold mb-3 text-blue-400">Full Content</h3>
+                            <div class="text-gray-300 whitespace-pre-wrap">${escapeHtml(idea.idea_content)}</div>
+                        </div>
+
+                        ${idea.tags ? `
+                            <div class="mb-6">
+                                <span class="text-gray-400">🏷️ Tags:</span> 
+                                <span class="text-gray-300">${escapeHtml(idea.tags)}</span>
+                            </div>
+                        ` : ''}
+
+                        ${idea.source_file ? `
+                            <div class="mb-6 text-sm">
+                                <span class="text-gray-400">📄 Source:</span> 
+                                <span class="text-gray-300">${escapeHtml(idea.source_file)}</span>
+                            </div>
+                        ` : ''}
+
+                        <!-- Comments Section -->
+                        <div class="border-t border-gray-700 pt-6">
+                            <h3 class="text-xl font-bold mb-4">💬 Comments & Suggestions (${comments.length})</h3>
+                            
+                            <!-- Add Comment Form -->
+                            <div class="bg-gray-900 rounded-lg p-4 mb-4">
+                                <textarea id="new-comment-${idea.id}" rows="3" 
+                                          placeholder="Add your comment or suggestion..."
+                                          class="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 mb-2"></textarea>
+                                <div class="flex gap-2">
+                                    <input type="text" id="comment-name-${idea.id}" placeholder="Your name"
+                                           class="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 w-1/3">
+                                    <select id="comment-type-${idea.id}" 
+                                            class="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600">
+                                        <option>Comment</option>
+                                        <option>Suggestion</option>
+                                        <option>Question</option>
+                                        <option>Approval</option>
+                                    </select>
+                                    <button onclick="submitComment(${idea.id})" 
+                                            class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded font-semibold">
+                                        Post Comment
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Existing Comments -->
+                            <div class="space-y-3">
+                                ${comments.map(c => `
+                                    <div class="bg-gray-900 rounded-lg p-4 ${c.is_resolved ? 'opacity-60' : ''}">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div>
+                                                <span class="font-bold text-blue-400">${escapeHtml(c.commenter_name)}</span>
+                                                <span class="text-gray-500 text-sm ml-2">${formatDate(c.date_created)}</span>
+                                                <span class="bg-purple-900 px-2 py-1 rounded text-xs ml-2">${escapeHtml(c.comment_type)}</span>
+                                            </div>
+                                            ${!c.is_resolved ? `
+                                                <button onclick="resolveComment(${c.id}, ${idea.id})"
+                                                        class="text-xs bg-green-700 hover:bg-green-600 px-2 py-1 rounded">
+                                                    ✓ Resolve
+                                                </button>
+                                            ` : '<span class="text-green-500 text-sm">✓ Resolved</span>'}
+                                        </div>
+                                        <p class="text-gray-300">${escapeHtml(c.comment_text)}</p>
+                                    </div>
+                                `).join('') || '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // ====================================================================
+        // COMMENTS
+        // ====================================================================
+
+        function submitComment(ideaId) {
+            const comment = document.getElementById(`new-comment-${ideaId}`).value.trim();
+            const name = document.getElementById(`comment-name-${ideaId}`).value.trim() || 'Anonymous';
+            const type = document.getElementById(`comment-type-${ideaId}`).value;
+            
+            if (!comment) {
+                alert('Please enter a comment');
+                return;
+            }
+            
+            fetch('/api/wiki/comments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    idea_id: ideaId,
+                    comment_text: comment,
+                    comment_type: type,
+                    commenter_name: name
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload the full idea to show new comment
+                    document.querySelector('.fixed').remove();
+                    showFullIdea(ideaId);
+                }
+            });
+        }
+
+        function resolveComment(commentId, ideaId) {
+            fetch(`/api/wiki/comments/${commentId}/resolve`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resolved_by: 'Meir' })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload the full idea
+                    document.querySelector('.fixed').remove();
+                    showFullIdea(ideaId);
+                }
+            });
+        }
+
+        // ====================================================================
+        // SEARCH & FILTER
+        // ====================================================================
+
+        function searchIdeas() {
+            const filters = {
+                search: document.getElementById('search-box').value,
+                category: document.getElementById('filter-category').value,
+                type: document.getElementById('filter-type').value
+            };
+            loadIdeas(filters);
+        }
+
+        function clearSearch() {
+            document.getElementById('search-box').value = '';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-type').value = '';
+            loadIdeas();
+        }
+
+        // ====================================================================
+        // ADD NEW IDEA
+        // ====================================================================
+
+        function showAddForm() {
+            document.getElementById('add-form').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function hideAddForm() {
+            document.getElementById('add-form').classList.add('hidden');
+            document.getElementById('new-idea-form').reset();
+        }
+
+        function submitIdea(e) {
+            e.preventDefault();
+            
+            const data = {
+                title: document.getElementById('form-title').value,
+                summary: document.getElementById('form-summary').value,
+                content: document.getElementById('form-content').value,
+                type: document.getElementById('form-type').value,
+                category: document.getElementById('form-category').value,
+                priority: document.getElementById('form-priority').value,
+                tags: document.getElementById('form-tags').value,
+                source_file: document.getElementById('form-source').value
+            };
+            
+            fetch('/api/wiki/ideas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(result => {
+                if (result.success) {
+                    hideAddForm();
+                    loadStats();
+                    loadIdeas();
+                    alert('Idea added successfully!');
+                }
+            });
+        }
+
+        // ====================================================================
+        // HELPER FUNCTIONS
+        // ====================================================================
+
+        function getPriorityColor(priority) {
+            const colors = {
+                'Critical': 'border-red-500',
+                'High': 'border-orange-500',
+                'Medium': 'border-yellow-500',
+                'Low': 'border-green-500'
+            };
+            return colors[priority] || 'border-gray-500';
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
